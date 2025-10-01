@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password_hash  String
+  role           Role
+  status         Status
+  email_verified Boolean   @default(false)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  profile        Profile?
+  sessions       Session[]
+
+  @@index([email])
+  @@index([role, status])
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  user_id      String   @unique
+  type         ProfileType
+  company_name String?
+  phone        String
+  avatar_url   String?
+  rating_avg   Decimal  @default(0)
+  rating_count Int      @default(0)
+  verified     Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [id])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  user_id    String
+  token_hash String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name_pl     String
+  name_en     String
+  slug        String    @unique
+  icon        String
+  parent_id   Int?
+  parent      Category? @relation("CategoryParent", fields: [parent_id], references: [id])
+  children    Category[] @relation("CategoryParent")
+  active      Boolean   @default(true)
+  order_index Int
+  listings    Listing[]
+}
+
+model Listing {
+  id                 String   @id @default(uuid())
+  owner_id           String
+  category_id        Int
+  status             ListingStatus @default(DRAFT)
+  title              String
+  description        String
+  from_address_json  Json
+  from_lat           Decimal
+  from_lng           Decimal
+  to_address_json    Json
+  to_lat             Decimal
+  to_lng             Decimal
+  distance_km        Decimal
+  pickup_date_from   DateTime?
+  pickup_date_to     DateTime?
+  delivery_date_from DateTime?
+  delivery_date_to   DateTime?
+  flexible_dates     Boolean
+  weight_kg          Decimal?
+  dimensions_json    Json
+  quantity           Int      @default(1)
+  vehicle_type       String?
+  images             Json
+  slug               String   @unique
+  views_count        Int      @default(0)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  published_at       DateTime?
+
+  owner              User     @relation(fields: [owner_id], references: [id])
+  category           Category @relation(fields: [category_id], references: [id])
+
+  @@index([status, created_at])
+  @@index([category_id, status])
+  @@index([owner_id])
+}
+
+model Offer {
+  id                      String   @id @default(uuid())
+  listing_id              String
+  carrier_id              String
+  price                   Decimal
+  currency                String   @default("PLN")
+  message                 String
+  estimated_pickup_date   DateTime
+  estimated_delivery_date DateTime
+  status                  OfferStatus @default(PENDING)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  expires_at              DateTime @default(dbgenerated("now() + interval '7 days'"))
+
+  listing                 Listing  @relation(fields: [listing_id], references: [id])
+  carrier                 User     @relation(fields: [carrier_id], references: [id])
+
+  @@unique([listing_id, carrier_id])
+  @@index([listing_id, status])
+  @@index([carrier_id, status])
+}
+
+model Conversation {
+  id               String   @id @default(uuid())
+  listing_id       String
+  offer_id         String?
+  participant_1_id String
+  participant_2_id String
+  status           ConversationStatus @default(RESTRICTED)
+  last_message_at  DateTime?
+  created_at       DateTime @default(now())
+  listing          Listing  @relation(fields: [listing_id], references: [id])
+  offer            Offer?   @relation(fields: [offer_id], references: [id])
+  participant_1    User     @relation("ConversationParticipant1", fields: [participant_1_id], references: [id])
+  participant_2    User     @relation("ConversationParticipant2", fields: [participant_2_id], references: [id])
+  messages         Message[]
+}
+
+model Message {
+  id              String   @id @default(uuid())
+  conversation_id String
+  sender_id       String
+  body            String
+  read_at         DateTime?
+  created_at      DateTime @default(now())
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  sender          User        @relation(fields: [sender_id], references: [id])
+
+  @@index([conversation_id, created_at])
+}
+
+model Contract {
+  id             String   @id @default(uuid())
+  listing_id     String
+  offer_id       String
+  client_id      String
+  carrier_id     String
+  amount         Decimal
+  currency       String
+  status         ContractStatus @default(CREATED)
+  payment_status PaymentStatus  @default(PENDING)
+  signed_at      DateTime?
+  started_at     DateTime?
+  completed_at   DateTime?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  listing        Listing  @relation(fields: [listing_id], references: [id])
+  offer          Offer    @relation(fields: [offer_id], references: [id])
+  client         User     @relation("ContractClient", fields: [client_id], references: [id])
+  carrier        User     @relation("ContractCarrier", fields: [carrier_id], references: [id])
+  reviews        Review[]
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  contract_id     String   @unique
+  reviewer_id     String
+  reviewed_id     String
+  overall_rating  Int
+  categories_json Json
+  comment         String   @db.Text
+  response        String?
+  response_at     DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  contract        Contract @relation(fields: [contract_id], references: [id])
+  reviewer        User     @relation("ReviewReviewer", fields: [reviewer_id], references: [id])
+  reviewed        User     @relation("ReviewReviewed", fields: [reviewed_id], references: [id])
+}
+
+model Payment {
+  id                      String   @id @default(uuid())
+  contract_id             String
+  amount                  Decimal
+  currency                String
+  provider                String
+  provider_transaction_id String
+  status                  PaymentStatus
+  metadata                Json
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  contract                Contract @relation(fields: [contract_id], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  user_id   String
+  type      NotificationType
+  title     String
+  body      String
+  data_json Json
+  link      String
+  read_at   DateTime?
+  created_at DateTime @default(now())
+  user      User     @relation(fields: [user_id], references: [id])
+}
+
+enum Role {
+  CLIENT
+  CARRIER
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum ProfileType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum ListingStatus {
+  DRAFT
+  OPEN
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  EXPIRED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  EXPIRED
+}
+
+enum ConversationStatus {
+  RESTRICTED
+  ACTIVE
+  ARCHIVED
+}
+
+enum ContractStatus {
+  CREATED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  NEW_OFFER
+  OFFER_ACCEPTED
+  MESSAGE
+  CONTRACT_STATUS
+  REVIEW_REQUEST
+  OTHER
+}
+
+// MODELS: User, Profile, Session, Category, Listing, Offer, Conversation, Message, Contract, Review
+// ENUMS: Role, Status, ProfileType, ListingStatus, OfferStatus, ConversationStatus, ContractStatus, PaymentStatus

@@ -1,0 +1,14 @@
+{
+  "name": "transport-marketplace",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "lint": "pnpm eslint . --ext .ts,.tsx",
+    "format": "pnpm prettier --write ."
+  }
+}
