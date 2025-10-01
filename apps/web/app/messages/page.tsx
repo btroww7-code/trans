@@ -32,12 +32,10 @@ export default function MessagesPage() {
       </aside>
       <main className="flex-1 p-4">
         {selected ? (
-          <ChatWindow
-            conversation={selected}
-            userId={userId}
-            isCarrier={selected.participant_2_id === userId}
-            isClient={selected.participant_1_id === userId}
-          />
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold mb-4">Konwersacja</h2>
+            <p className="text-gray-600">Chat z konwersacji ID: {selected.id}</p>
+          </div>
         ) : (
           <div className="text-gray-500">Wybierz konwersację z listy</div>
         )}

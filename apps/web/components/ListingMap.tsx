@@ -1,46 +1,36 @@
-import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
+import React from 'react';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+interface ListingMapProps {
+  from: { lng: number; lat: number; formatted: string };
+  to: { lng: number; lat: number; formatted: string };
+}
 
-export default function ListingMap({ from, to }) {
-  const mapRef = useRef(null);
+export default function ListingMap({ from, to }: ListingMapProps) {
+  if (!from || !to) {
+    return (
+      <div className="bg-gray-100 rounded-lg p-6 text-center text-gray-600">
+        Mapa będzie dostępna po dodaniu lokalizacji
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (!from || !to) return;
-    const map = new mapboxgl.Map({
-      container: mapRef.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [(from.lng + to.lng) / 2, (from.lat + to.lat) / 2],
-      zoom: 6,
-    });
-    new mapboxgl.Marker({ color: 'green' }).setLngLat([from.lng, from.lat]).addTo(map);
-    new mapboxgl.Marker({ color: 'red' }).setLngLat([to.lng, to.lat]).addTo(map);
-    // Draw route line
-    map.on('load', () => {
-      map.addSource('route', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [from.lng, from.lat],
-              [to.lng, to.lat],
-            ],
-          },
-        },
-      });
-      map.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#3b82f6', 'line-width': 4 },
-      });
-    });
-    return () => map.remove();
-  }, [from, to]);
-
-  return <div ref={mapRef} style={{ width: '100%', height: 300 }} />;
+  return (
+    <div className="bg-gray-100 rounded-lg p-6">
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+          <span className="text-sm font-medium">Punkt początkowy:</span>
+          <span className="text-sm text-gray-600">{from.formatted}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+          <span className="text-sm font-medium">Punkt końcowy:</span>
+          <span className="text-sm text-gray-600">{to.formatted}</span>
+        </div>
+      </div>
+      <div className="bg-white rounded h-64 flex items-center justify-center text-gray-400">
+        Mapa trasy (Mapbox będzie zintegrowany)
+      </div>
+    </div>
+  );
 }

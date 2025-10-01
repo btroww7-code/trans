@@ -1,32 +1,74 @@
+'use client';
+
 import React, { useState } from 'react';
-import CategorySelector from '../../../components/CategorySelector';
-// ...importy do address, date pickers, etc...
 
 export default function Wizard() {
   const [step, setStep] = useState(1);
-  // ...zustand draft state...
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          {[1, 2, 3, 4].map((s) => (
+            <div
+              key={s}
+              className={`w-1/4 h-2 rounded ${
+                s <= step ? 'bg-blue-600' : 'bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
       {step === 1 && (
-        <CategorySelector /* ...props... */ />
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Wybierz kategorię</h2>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="input"
+          >
+            <option value="">Wybierz kategorię</option>
+            <option value="furniture">Meble</option>
+            <option value="car">Pojazdy</option>
+            <option value="construction">Materiały budowlane</option>
+          </select>
+        </div>
       )}
       {step === 2 && (
-        // Trasa: 2x address input, date pickers
-        <div>{/* ... */}</div>
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Trasa transportu</h2>
+          <p className="text-gray-600">Określ punkt początkowy i końcowy</p>
+        </div>
       )}
       {step === 3 && (
-        // Szczegóły: weight, dimensions, quantity, description
-        <div>{/* ... */}</div>
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Szczegóły przesyłki</h2>
+          <p className="text-gray-600">Waga, wymiary, ilość</p>
+        </div>
       )}
       {step === 4 && (
-        // Podsumowanie + Publish
-        <div>{/* ... */}</div>
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Podsumowanie</h2>
+          <p className="text-gray-600">Sprawdź dane i opublikuj</p>
+        </div>
       )}
-      {/* Nawigacja między krokami */}
-      <div>
-        {step > 1 && <button onClick={() => setStep(step - 1)}>Wstecz</button>}
-        {step < 4 && <button onClick={() => setStep(step + 1)}>Dalej</button>}
+
+      <div className="flex justify-between mt-8">
+        {step > 1 && (
+          <button onClick={() => setStep(step - 1)} className="btn btn-secondary">
+            Wstecz
+          </button>
+        )}
+        {step < 4 && (
+          <button onClick={() => setStep(step + 1)} className="btn btn-primary ml-auto">
+            Dalej
+          </button>
+        )}
+        {step === 4 && (
+          <button className="btn btn-primary ml-auto">Opublikuj</button>
+        )}
       </div>
     </div>
   );

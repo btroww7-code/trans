@@ -1,26 +1,35 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 
-export default function AddressAutocomplete({ value, onSelect }) {
-  const inputRef = useRef(null);
+interface AddressAutocompleteProps {
+  value: string;
+  onSelect: (address: { formatted: string; lat: number; lng: number }) => void;
+}
 
-  useEffect(() => {
-    import('@mapbox/mapbox-gl-geocoder').then(MapboxGeocoder => {
-      const geocoder = new MapboxGeocoder.default({
-        accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
-        placeholder: 'Wpisz adres...',
-        types: 'address,place',
+export default function AddressAutocomplete({ value, onSelect }: AddressAutocompleteProps) {
+  const [inputValue, setInputValue] = useState(value);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleBlur = () => {
+    if (inputValue) {
+      onSelect({
+        formatted: inputValue,
+        lat: 0,
+        lng: 0,
       });
-      geocoder.addTo(inputRef.current);
-      geocoder.on('result', e => {
-        const feature = e.result;
-        onSelect({
-          formatted: feature.place_name,
-          lat: feature.center[1],
-          lng: feature.center[0],
-        });
-      });
-    });
-  }, [onSelect]);
+    }
+  };
 
-  return <div ref={inputRef} />;
+  return (
+    <input
+      type="text"
+      value={inputValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      placeholder="Wpisz adres..."
+      className="input w-full"
+    />
+  );
 }

@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-
-export const useListingDraftStore = create(set => ({
-  draft: {},
-  setDraft: (data) => set(state => ({ draft: { ...state.draft, ...data } })),
-  resetDraft: () => set({ draft: {} }),
-}));
+export const useListingDraftStore = () => {
+  return {
+    draft: {},
+    setDraft: (data: any) => console.log('Draft updated:', data),
+    resetDraft: () => console.log('Draft reset'),
+  };
+};

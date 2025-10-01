@@ -1,16 +1,17 @@
-import Head from 'next/head';
+import { Metadata } from 'next';
 
-export default function CategoryPage({ params }) {
-  // ...fetch category data...
-  const canonicalUrl = `https://yourdomain.com/categories/${params.slug}`;
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  return {
+    title: `${params.slug} | Transport Marketplace`,
+    description: `Zlecenia w kategorii ${params.slug}`,
+  };
+}
+
+export default function CategoryPage({ params }: { params: { slug: string } }) {
   return (
-    <>
-      <Head>
-        <title>{category.name_pl} | Transport Marketplace</title>
-        <meta name="description" content={`Zlecenia w kategorii ${category.name_pl}`} />
-        <link rel="canonical" href={canonicalUrl} />
-      </Head>
-      {/* ...category listings... */}
-    </>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Kategoria: {params.slug}</h1>
+      <p className="text-gray-600">Lista zleceń w tej kategorii.</p>
+    </div>
   );
 }

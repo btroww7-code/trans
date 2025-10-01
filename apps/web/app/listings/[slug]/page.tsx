@@ -200,7 +200,7 @@ export default function ListingDetailPage({ params }) {
                       </div>
                     </div>
                   ))
-              }
+              )}
             </div>
           </div>
         )}

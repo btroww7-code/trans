@@ -1,65 +1,45 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+export default function PayPage({ params }: { params: { id: string } }) {
+  const [contract, setContract] = useState<any>(null);
 
-function PaymentForm({ contractId, amount, currency }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [clientSecret, setClientSecret] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/payments/create-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contract_id: contractId, amount, currency }),
-    })
-      .then(res => res.json())
-      .then(data => setClientSecret(data.client_secret));
-  }, [contractId, amount, currency]);
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setLoading(true);
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: elements.getElement(CardElement) },
-    });
-    setLoading(false);
-    if (result.paymentIntent?.status === 'succeeded') {
-      window.location.href = `/contracts/${contractId}`;
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-8">
-      <CardElement />
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
-        disabled={!stripe || !elements || loading}
-      >
-        {loading ? 'Przetwarzanie...' : 'Opłać'}
-      </button>
-    </form>
-  );
-}
-
-export default function PayPage({ params }) {
-  // Pobierz szczegóły kontraktu z API
-  const [contract, setContract] = useState(null);
   useEffect(() => {
     fetch(`/api/contracts/${params.id}`)
       .then(res => res.json())
-      .then(setContract);
+      .then(setContract)
+      .catch(err => console.error('Error loading contract:', err));
   }, [params.id]);
 
-  if (!contract) return <div>Ładowanie...</div>;
+  if (!contract) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center">Ładowanie...</div>
+      </div>
+    );
+  }
 
   return (
-    <Elements stripe={stripePromise}>
-      <PaymentForm contractId={contract.id} amount={contract.amount} currency={contract.currency} />
-    </Elements>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Płatność za kontrakt</h1>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <p className="text-gray-600 mb-4">ID kontraktu: {contract.id}</p>
+        <p className="text-2xl font-bold mb-4">
+          Kwota: {contract.amount} {contract.currency}
+        </p>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-gray-700">
+            Integracja płatności Stripe będzie dostępna po skonfigurowaniu kluczy API.
+          </p>
+        </div>
+        <button
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg w-full hover:bg-blue-700 transition-colors"
+          disabled
+        >
+          Opłać (wkrótce)
+        </button>
+      </div>
+    </div>
   );
 }
