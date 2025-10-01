@@ -4,20 +4,30 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Menu, X, Truck, User, Bell, Settings, Search, Plus, MessageSquare, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/contexts/AuthContext'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
-  const [userRole, setUserRole] = useState('ADMIN')
-  const [notifications, setNotifications] = useState(3)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState(0)
   const router = useRouter()
+  const { user, profile, signOut } = useAuth()
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
+  const handleLogout = async () => {
+    await signOut()
     setShowUserMenu(false)
     router.push('/')
+  }
+
+  const getUserInitials = () => {
+    if (!profile) return 'U'
+    return `${profile.first_name[0]}${profile.last_name[0]}`
+  }
+
+  const getUserName = () => {
+    if (!profile) return 'User'
+    return `${profile.first_name} ${profile.last_name}`
   }
 
   return (
@@ -40,12 +50,19 @@ export default function Navigation() {
             <Link href="/carriers" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
               Przewoźnicy
             </Link>
-            
-            {isLoggedIn ? (
+
+            {user ? (
               <div className="flex items-center space-x-4">
-                <Link href="/dashboard" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
-                  Dashboard
-                </Link>
+                {profile?.role === 'CLIENT' && (
+                  <Link href="/dashboard" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
+                    Moje zlecenia
+                  </Link>
+                )}
+                {profile?.role === 'CARRIER' && (
+                  <Link href="/dashboard" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
+                    Moje oferty
+                  </Link>
+                )}
                 <Link href="/listings/new" className="btn btn-primary text-sm">
                   <Plus className="w-4 h-4 mr-1" />
                   Dodaj zlecenie
@@ -103,7 +120,7 @@ export default function Navigation() {
                   </span>
                 </Link>
 
-                {userRole === 'ADMIN' && (
+                {profile?.role === 'ADMIN' && (
                   <Link href="/admin" className="text-red-600 hover:text-red-700 transition-colors font-medium">
                     Admin Panel
                   </Link>
@@ -116,9 +133,9 @@ export default function Navigation() {
                     className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">JK</span>
+                      <span className="text-white text-sm font-medium">{getUserInitials()}</span>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Jan Kowalski</span>
+                    <span className="text-sm font-medium text-gray-700">{getUserName()}</span>
                   </button>
                   
                   {showUserMenu && (
@@ -141,8 +158,6 @@ export default function Navigation() {
                       </button>
                     </div>
                   )}
-                </div>
-                  </div>
                 </div>
               </div>
             ) : (
@@ -179,7 +194,7 @@ export default function Navigation() {
             <Link href="/carriers" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
               Przewoźnicy
             </Link>
-            {isLoggedIn ? (
+            {user ? (
               <>
                 <Link href="/dashboard" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
                   Dashboard
@@ -193,7 +208,7 @@ export default function Navigation() {
                 <Link href="/profile" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
                   Mój profil
                 </Link>
-                {userRole === 'ADMIN' && (
+                {profile?.role === 'ADMIN' && (
                   <Link href="/admin" className="block px-3 py-2 text-red-600 hover:text-red-700 font-medium">
                     Admin Panel
                   </Link>

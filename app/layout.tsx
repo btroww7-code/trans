@@ -1,12 +1,15 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Manrope } from 'next/font/google'
 import Navigation from './components/Navigation'
+import { AuthProvider } from '@/lib/contexts/AuthContext'
+import { Toaster } from 'react-hot-toast'
 
-const inter = Inter({ subsets: ['latin'] })
+const manrope = Manrope({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Transport Marketplace',
-  description: 'Marketplace transportowy – zleć przewóz, znajdź przewoźnika, porównaj oferty.',
+  title: 'Transport Marketplace - Znajdź przewoźnika, porównaj oferty',
+  description: 'Marketplace transportowy – zleć przewóz, znajdź przewoźnika, porównaj oferty. Bezpieczne płatności, zweryfikowani przewoźnicy.',
+  keywords: 'transport, przewóz, zlecenia transportowe, przewoźnicy, marketplace',
 }
 
 export default function RootLayout({
@@ -16,11 +19,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pl">
-      <body className={inter.className}>
-        <Navigation />
-        <main className="min-h-screen">
-          {children}
-        </main>
+      <body className={manrope.className}>
+        <AuthProvider>
+          <Navigation />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Toaster position="top-right" />
+        </AuthProvider>
       </body>
     </html>
   )

@@ -1,6 +1,6 @@
-import { Search, Filter, MapPin, Calendar, Package, Truck, Eye, Heart, Star, Shield } from 'lucide-react'
+import { Search, Filter, MapPin, Calendar, Package, Truck, Eye, Heart, Star, Shield, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
-import SearchBar from '../components/SearchBar'
+import { SearchBar } from '../components/SearchBar'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function ListingsPage() {
@@ -107,7 +107,9 @@ export default function ListingsPage() {
         <p className="text-gray-600 mt-2">Znajdź idealne zlecenie dla swojego transportu lub dodaj własne</p>
       </div>
 
-      <SearchBar className="mb-6" />
+      <div className="mb-6">
+        <SearchBar />
+      </div>
 
       {/* Results Info */}
       <div className="flex justify-between items-center mb-6">
