@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password_hash  String
+  role           Role
+  status         Status
+  email_verified Boolean   @default(false)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  profile        Profile?
+  sessions       Session[]
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  user_id      String   @unique
+  type         ProfileType
+  company_name String?
+  phone        String
+  avatar_url   String?
+  rating_avg   Decimal  @default(0)
+  rating_count Int      @default(0)
+  verified     Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [id])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  user_id    String
+  token_hash String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+enum Role {
+  CLIENT
+  CARRIER
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum ProfileType {
+  INDIVIDUAL
+  COMPANY
+}
